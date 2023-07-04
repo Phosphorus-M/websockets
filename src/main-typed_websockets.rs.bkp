@@ -1,0 +1,56 @@
+pub use axum::{response::IntoResponse, routing::get, Router};
+pub use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade};
+pub use std::time::Instant;
+pub use serde::{Serialize, Deserialize};
+
+
+#[derive(Serialize, Deserialize, Debug)]
+enum ServerMsg {
+    Ping,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+enum ClientMsg {
+    Pong,
+}
+
+
+#[tokio::main]
+async fn main() {
+    // Make a regular axum router
+    let app = Router::new().route("/ws", get(handler));
+
+    // Run it!
+    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+}
+
+async fn handler(
+    // Upgrade the request to a WebSocket connection where the server sends
+    // messages of type `ServerMsg` and the clients sends `ClientMsg`
+    ws: WebSocketUpgrade<ServerMsg, ClientMsg>,
+) -> impl IntoResponse {
+    ws.on_upgrade(ping_pong_socket)
+}
+
+// Send a ping and measure how long time it takes to get a pong back
+async fn ping_pong_socket(mut socket: WebSocket<ServerMsg, ClientMsg>) {
+    let start = Instant::now();
+    socket.send(Message::Ping("si".into())).await.ok();
+
+    if let Some(msg) = socket.recv().await {
+        match msg {
+            Ok(Message::Item(ClientMsg::Pong)) => {
+                println!("ping: {:?}", start.elapsed());
+            }
+            Ok(msg) => {
+                println!("msg: {:?}", msg);
+            }
+            Err(err) => {
+                eprintln!("got error: {}", err);
+            }
+        }
+    }
+}
