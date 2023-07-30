@@ -30,7 +30,7 @@ async fn get_pokemon_by_id(id: u32) -> Option<Pokemon> {
     POKEMON_INFO_BY_ID.write().await.insert(pokemon.id, pokemon.clone());
     POKEMON_INFO_BY_NAME.write().await.insert(pokemon.name.clone(), pokemon.clone());
     
-    return Some(pokemon);
+    Some(pokemon)
 }
 
 async fn get_pokemon_by_name(name: &str) -> Option<Pokemon> {

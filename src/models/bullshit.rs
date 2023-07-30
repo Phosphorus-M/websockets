@@ -68,7 +68,7 @@ pub struct Version {
     pub url: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HeldItem {
     pub item: Item,
@@ -97,7 +97,7 @@ pub struct Version2 {
     pub url: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Mfe {
     #[serde(rename = "move")]
@@ -209,7 +209,7 @@ pub struct OfficialArtwork {
     pub front_shiny: String,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Versions {
     #[serde(rename = "generation-i")]
@@ -449,7 +449,7 @@ pub struct Platinum {
     pub front_shiny_female: Value,
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GenerationV {
     #[serde(rename = "black-white")]
