@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use color_eyre::{Result, Help};
 use crate::models::{user::Roles, error::Error};
 
-const BEARER: &str = "Bearer ";
-const JWT_SECRET: &[u8] = b"secret";
+pub const BEARER: &str = "Bearer ";
+pub const JWT_SECRET: &[u8] = b"secret";
 
 
 
@@ -28,7 +28,7 @@ pub fn create_jwt(uid: u32, role: &Roles) -> Result<String> {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
-    sub: u32,
-    role: String,
+    pub sub: u32,
+    pub role: String,
     exp: usize,
 }

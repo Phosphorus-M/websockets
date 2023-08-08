@@ -16,6 +16,15 @@ pub enum Roles {
     Mod,
     User
 }
+impl Roles {
+    pub fn from_str(role: &str) -> Roles {
+        match role {
+            "Admin" => Roles::Admin,
+            "Mod" => Roles::Mod,
+            _ => Roles::User,
+        }
+    }
+}
 
 impl User {
     #[must_use] pub fn new(id: u32, nick: String, password: String, role: Roles) -> Self {

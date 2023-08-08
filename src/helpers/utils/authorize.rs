@@ -1,9 +1,12 @@
+use color_eyre::{Result, Help};
 use headers::HeaderMap;
 
-use crate::models::user::Roles;
+use crate::models::{user::Roles, error::Error};
 
-async fn authorize((role, headers): (Roles, HeaderMap)) -> Result<String> {
-    match jwt_from_header(&headers) {
+use super::create_jwt::{Claims, JWT_SECRET, BEARER};
+use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
+pub async fn authorize((role, headers): (Roles, HeaderMap)) -> Result<u32> {
+    match jwt_from_header(headers) {
         Ok(jwt) => {
 
 
@@ -12,28 +15,29 @@ async fn authorize((role, headers): (Roles, HeaderMap)) -> Result<String> {
                 &DecodingKey::from_secret(JWT_SECRET),
                 &Validation::new(Algorithm::HS512),
             )
-            .map_err(|_| reject::custom(Error::JWTTokenError))?;
+            .map_err(|_| Error::JWTTokenError)?;
 
-            if role == Role::Admin && Role::from_str(&decoded.claims.role) != Role::Admin {
-                return Err(reject::custom(Error::NoPermissionError));
+            if role == Roles::Admin && Roles::from_str(&decoded.claims.role) != Roles::Admin {
+                return Err(Error::NoPermissionError).suggestion("do something");
             }
 
             Ok(decoded.claims.sub)
         }
-        Err(e) => return Err(reject::custom(e)),
+        Err(e) => return Err(e)
     }
 }
 
-fn jwt_from_header(headers: HeaderMap) {
+fn jwt_from_header(headers: HeaderMap) -> Result<String>{
     let header = match headers.get("authorization") {
         Some(v) => v,
-        None => return Err(Error::NoAuthHeaderError),
+        None => Err(Error::NoAuthHeaderError)?,
     };
     let auth_header = match std::str::from_utf8(header.as_bytes()) {
         Ok(v) => v,
-        Err(_) => return Err(Error::NoAuthHeaderError),
+        Err(_) => Err(Error::NoAuthHeaderError)?,
     };
     if !auth_header.starts_with(BEARER) {
-        return Err(Error::InvalidAuthHeaderError);
+        Err(Error::InvalidAuthHeaderError)?;
     }
+    Ok(auth_header.trim_start_matches(BEARER).to_owned())
 }

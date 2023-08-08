@@ -19,7 +19,8 @@ pub struct Message {
 
 impl Message {
 
-    #[must_use] pub fn has_enoughs_params(&self) -> bool{
+    #[must_use]
+    pub fn has_enoughs_params(&self) -> bool{
         let Some(command) = &self.command else {
             return true;
         };
@@ -34,8 +35,28 @@ impl Message {
         }
     }
 
+    fn require_be_logged(&self) -> bool {
+        let Some(command) = &self.command else {
+            return false;
+        };
 
-    pub async fn execute(&self, users: MutexGuard<'_, HashMap<String, User>>) -> Option<String> {
+        match command.as_str() {
+            "pokemon_info" => true,
+            "message" => true,
+            "nick" => false,
+            "login" => false,
+            "register" => false,
+            _ => true
+        }
+    }
+
+
+    pub async fn execute(&self, mut users: MutexGuard<'_, HashMap<String, User>>, jwt: &String) -> Option<String> {
+
+        if self.require_be_logged() && jwt.is_empty() {
+            return None;
+        }
+
         if !self.has_enoughs_params() {
             return None;
         }
@@ -58,6 +79,15 @@ impl Message {
                 let message = arguments[0].clone();
                 Some(message)
             },
+            "register" => {
+                let username = arguments[0].clone();
+                let password = arguments[1].clone();
+                let id = users.len() + 1;
+                let token = create_jwt(id as u32, &super::user::Roles::User).ok()?;
+                users.insert(username.clone(), User::new(id as u32, username, password, super::user::Roles::User));
+
+                Some(json!(&LoginResponse { token }).to_string())
+            }
             "login" => {
                 let username = arguments[0].clone();
                 let password = arguments[1].clone();
